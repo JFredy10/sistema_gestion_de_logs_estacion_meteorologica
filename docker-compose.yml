@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management # Imagen con dashboard de administración
+    container_name: rabbitmq_server
+    ports:
+      - "5672:5672"   # Puerto para AMQP
+      - "15672:15672" # Puerto para el dashboard de administración
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/ # Volumen para persistencia de datos de RabbitMQ
+    environment:
+      - RABBITMQ_DEFAULT_USER=userRpx # Usuario por defecto
+      - RABBITMQ_DEFAULT_PASS=pd3edeW246 # Contraseña por defecto
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine # Imagen de PostgreSQL
+    container_name: postgres_db
+    ports:
+      - "5432:5432" # Puerto de PostgreSQL
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Volumen para persistencia de datos de PostgreSQL
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # Script de inicialización
+    environment:
+      - POSTGRES_DB=weatherdb # Nombre de la base de datos
+      - POSTGRES_USER=weatheruser # Usuario de la base de datos
+      - POSTGRES_PASSWORD=weatherpass # Contraseña del usuario
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  producer:
+    build: ./producer
+    container_name: weather_producer
+    depends_on:
+      rabbitmq:
+        condition: service_healthy # Esperar a que RabbitMQ esté saludable
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=userRpx
+      - RABBITMQ_PASS=pd3edeW246
+    restart: on-failure
+
+  consumer:
+    build: ./consumer
+    container_name: weather_consumer
+    depends_on:
+      rabbitmq:
+        condition: service_healthy # Esperar a que RabbitMQ esté saludable
+      postgres:
+        condition: service_healthy # Esperar a que PostgreSQL esté saludable
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=userRpx
+      - RABBITMQ_PASS=pd3edeW246
+      - DB_HOST=postgres
+      - DB_NAME=weatherdb
+      - DB_USER=weatheruser
+      - DB_PASS=weatherpass
+    restart: on-failure
+    # Para escalabilidad horizontal, puedes usar:
+    # deploy:
+    #   replicas: 3 # Número de instancias del consumidor
+
+volumes:
+  rabbitmq_data: # Define el volumen para RabbitMQ
+  postgres_data: # Define el volumen para PostgreSQL
