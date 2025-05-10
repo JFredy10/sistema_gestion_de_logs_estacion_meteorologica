@@ -4,8 +4,6 @@ Este proyecto implementa un sistema para recolectar, procesar y almacenar logs d
 
 ## Arquitectura del Sistema
 
-(Aquí puedes describir la arquitectura. Si puedes generar un diagrama e insertarlo como imagen, sería ideal. Ejemplo de descripción textual:)
-
 1.  **Productores de Datos (`producer`):** Un servicio en Python que simula la generación de datos de estaciones meteorológicas en formato JSON. Publica estos mensajes en un exchange de RabbitMQ. Los mensajes son marcados como persistentes.
 2.  **Broker de Mensajería (RabbitMQ):** RabbitMQ actúa como el intermediario de mensajes. Se configura un exchange (`weather_exchange`) y una cola durable (`weather_log_queue`). Los mensajes son persistentes para evitar pérdidas. El dashboard de administración de RabbitMQ está disponible en `http://localhost:15672`.
 3.  **Consumidores (`consumer`):** Un microservicio en Python que consume mensajes de la cola de RabbitMQ.
@@ -65,7 +63,10 @@ Las configuraciones principales se encuentran en:
 
 ## Acceso a Servicios
 
-* **RabbitMQ Management Dashboard:** `http://localhost:15672` (Usuario: `user`, Contraseña: `password` - o lo que hayas configurado).
+* **RabbitMQ Management Dashboard:** `http://localhost:15672` 
+Usuario: userRpx
+Contraseña: pd3edeW246
+
 * **PostgreSQL:** Puede ser accedido en `localhost:5432` con un cliente de base de datos (ej. pgAdmin, DBeaver) usando las credenciales:
     * Host: `localhost`
     * Puerto: `5432`
