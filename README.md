@@ -17,7 +17,6 @@ Este proyecto implementa un sistema para recolectar, procesar y almacenar logs d
 
 ## Requisitos Previos
 
-* Docker
 * Docker Compose
 
 ## Configuración
